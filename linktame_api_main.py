@@ -13,7 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash #To ha
 #from flask_jwt_extended import JWTManager
 import jwt
 import datetime #for jwt token expiration
-from functools import wraps #for JWT decorator
+from functools import wraps #for JWT decorator 
 
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
