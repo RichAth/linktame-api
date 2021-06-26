@@ -280,13 +280,13 @@ def login():
 
     if not auth or not auth.username or not auth.password:
         #If auth failed make response returning a 401 with an appropriate header
-        return make_response(jsonify({"message" : "Could not verify",'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+        return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
     #if auth info is valid, get user data from db
     email = Users.query.filter_by(email=auth.username).first()
-    #if user does not exist
+    #Check if user email does not exist
     if not email:
-        return make_response(jsonify({"message" : "Could not verify",'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+        return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
     #if user password in db matches user password in auth then generate JWT token
     if check_password_hash(email.password, auth.password):
         #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
@@ -295,7 +295,7 @@ def login():
         return jsonify({'successful' : 'true', 'token' : token}), 200
 
     #else if password doesnt match
-    return make_response(jsonify({"message" : "Could not verify",'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+    return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
 
 
