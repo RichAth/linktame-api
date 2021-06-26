@@ -1,1 +1,1 @@
-web: gunicorn linktame-api-app:app
+web: gunicorn linktame_api_app:app
