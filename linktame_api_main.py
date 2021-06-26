@@ -1,6 +1,7 @@
 #based on tut: https://www.youtube.com/watch?v=WxGBoY5iNXY
 #Requires SQLite3 to be installed
 import sys, os
+
 import gunicorn
 import json #havent used yet
 import requests #havent used yet
@@ -16,7 +17,7 @@ from functools import wraps #for JWT decorator
 
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
-
+import psycopg2 #for heroku PostgreSQL connection
 #from flask_restful import Api, Resource #...not working after flask update - flask_restful seems to be outdated
 from flask_cors import CORS
 
