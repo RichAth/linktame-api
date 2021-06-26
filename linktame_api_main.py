@@ -33,13 +33,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 import re
 
-uri = os.getenv("DATABASE_URL")  # or other relevant config var
+uri = os.getenv("postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj")  # or other relevant config var
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 # rest of connection code using the connection string `uri`
 #Configure Database
  #this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
-app.config[uri] = 'postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj'
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 #create the db class
 db = SQLAlchemy(app)
 #Create the two classes that represent the tables in the Database
