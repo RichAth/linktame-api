@@ -217,7 +217,10 @@ def update_user(current_user):
                 print(e)
             return jsonify({'successful' : 'false', 'message' : 'Invalid name!'}), 400
         #Name inserted successfully
-        return jsonify({'name' : user.name, 'successful' : 'true', "message" : "User name updated!"}), 200
+        #Create new JWT token with updated name
+        #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
+        token = jwt.encode({'public_id' : current_user.public_id, 'email' : current_user.email, 'name' : user.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
+        return jsonify({'name' : user.name, 'successful' : 'true', "message" : "User name updated!", 'token' : token}), 200
     #Else return invalid name
     return jsonify({'successful' : 'false', "message" : "Name already exists!"}), 200
 
