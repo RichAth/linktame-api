@@ -44,7 +44,7 @@ db = SQLAlchemy(app)
 #Create the two classes that represent the tables in the Database
 #User table
 class Users(db.Model):
-    __tablename__ = "Users"
+    __tablename__ = "users"
 
     id = db.Column(db.Integer,primary_key=True)
     public_id = db.Column(db.String(50),unique=True) #Public_id is used to help prevent people seeing how many users are in the db
@@ -62,7 +62,7 @@ class Users(db.Model):
 
 #Links table
 class Links(db.Model):
-    __tablename__ = "Links"
+    __tablename__ = "links"
 
     id = db.Column(db.Integer,primary_key=True)
     public_id = db.Column(db.String(50),unique=True)
