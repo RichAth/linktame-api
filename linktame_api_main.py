@@ -28,6 +28,7 @@ api = CORS(app)
 app_debug = 1
 #Secret key to use the encoding of the JWT token
 app.config['SECRET_KEY'] = 'thisissecret'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Linktame\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 import re
