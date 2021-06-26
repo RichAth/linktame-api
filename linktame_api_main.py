@@ -273,7 +273,7 @@ def delete_user(current_user, public_id):
 #Handling User endpoints for user authentication --------------------------------------------------------
 #login route will work with HTTP basic authentication, all other routes excl /v1/auth/user-POST will work with JWT token in the header
 #user logs in with email and password
-@app.route('/v1/auth/login')
+@app.route('/v1/auth/login', methods=['POST'])
 def login():
     #Get authorization data
     auth = request.authorization
