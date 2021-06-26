@@ -11,14 +11,13 @@ import uuid #To generate random public_id
 
 from werkzeug.security import generate_password_hash, check_password_hash #To handling hashing passwords
 
-#from flask_jwt_extended import JWTManager
-import jwt
+import jwt #PyJWT
 import datetime #for jwt token expiration
 from functools import wraps #for JWT decorator
 
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
-import psycopg2 #for heroku PostgreSQL connection
+import psycopg2 # needed for heroku PostgreSQL connection
 #from flask_restful import Api, Resource #...not working after flask update - flask_restful seems to be outdated
 from flask_cors import CORS
 
@@ -30,9 +29,14 @@ api = CORS(app)
 app_debug = 1
 #Secret key to use the encoding of the JWT token
 app.config['SECRET_KEY'] = 'thisissecret'
+
+#db Config--------------------------------------------------------------------------------------------
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Linktame\\links.db'
+
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
+#Comment out the following for local deployment
+#"""
 import re
 
 uri = "postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj"  # or other relevant config var
@@ -42,6 +46,7 @@ if uri.startswith("postgres://"):
 #Configure Database
  #this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
+#"""
 #create the db class
 db = SQLAlchemy(app)
 #Create the two classes that represent the tables in the Database
@@ -78,8 +83,9 @@ class Links(db.Model):
         self.link = link
         self.link_name = link_name
         self.user_id = user_id
+#db Config--------------------------------------------------------------------------------------------
 
-#JWT token decorator, checking if token is valid
+#JWT token decorator, checks if token is valid
 def token_required(f):
     @wraps(f)
     def decorated(*args,**kwargs):
@@ -110,6 +116,7 @@ def token_required(f):
 @app.route('/')
 def home():
    return render_template('home.html')
+
 #Handling User endpoints for users managment --------------------------------------------------------
 #Get all Users---------------------------------------------------
 @app.route('/v1/auth/user', methods=['GET'])
@@ -136,6 +143,7 @@ def get_all_users(current_user):
 
 
     return jsonify({'users' : output}), 200
+
 #Get One User--------------------------------------------------
 @app.route('/v1/auth/user/<public_id>', methods=['GET'])
 @token_required #token required decorator
@@ -170,6 +178,10 @@ def create_user():
     try:
         #Create new user in db in table Users....use uuid to generate public_id
         new_user = Users(public_id=str(uuid.uuid4()), email=data['email'], name=data['name'], password=hashed_password, admin=False)
+        #Check if User already Exists
+        already_exists = Users.query.filter_by(email=new_user.email).first()
+        if already_exists is not None:
+            return jsonify({'successful' : 'false', 'message' : 'Email already exists!'}), 400
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
