@@ -203,10 +203,16 @@ def update_user(current_user):
     #check if user exists
     if not user:
         return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
-
+    #retrieve request body data 
     data = request.get_json()
     #check if user name exists
-    name_exists = Users.query.filter_by(name=data['name']).first()
+    try:
+        name_exists = Users.query.filter_by(name=data['name']).first()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : 'false', 'message' : 'Invalid name!'}), 400
+
     #Check if name exists
     if not name_exists:
         try:
@@ -221,7 +227,7 @@ def update_user(current_user):
         #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
         token = jwt.encode({'public_id' : current_user.public_id, 'email' : current_user.email, 'name' : user.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
         return jsonify({'name' : user.name, 'successful' : 'true', "message" : "User name updated!", 'token' : token}), 200
-    #Else return invalid name
+    #Else return Name already exists! 200
     return jsonify({'successful' : 'false', "message" : "Name already exists!"}), 200
 
 #Takes in user_id and will promote any user id to admin thats passed into an admin user_id
