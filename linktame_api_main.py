@@ -217,7 +217,7 @@ def update_user(current_user):
                 print(e)
             return jsonify({'successful' : 'false', 'message' : 'Invalid name!'}), 400
         #Name inserted successfully
-        return jsonify({'successful' : 'true', "message" : "User name updated!"}), 200
+        return jsonify({'name' : user.name, 'successful' : 'true', "message" : "User name updated!"}), 200
     #Else return invalid name
     return jsonify({'successful' : 'false', "message" : "Name already exists!"}), 200
 
