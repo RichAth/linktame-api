@@ -28,6 +28,8 @@ api = CORS(app)
 app_debug = 1
 #Secret key to use the encoding of the JWT token
 app.config['SECRET_KEY'] = 'thisissecret'
+#https://stackoverflow.com/questions/66690321/flask-and-heroku-sqlalchemy-exc-nosuchmoduleerror-cant-load-plugin-sqlalchemy
+SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL').replace("://", "ql://", 1)
 #Configure Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj' #this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
 #create the db class
