@@ -28,6 +28,7 @@ api = CORS(app)
 app_debug = 1
 #Secret key to use the encoding of the JWT token
 app.config['SECRET_KEY'] = 'thisissecret'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Linktame\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 import re
 
@@ -36,25 +37,44 @@ if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 # rest of connection code using the connection string `uri`
 #Configure Database
-app.config[uri] = 'postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj' #this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
+ #this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
+app.config[uri] = 'postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj'
 #create the db class
 db = SQLAlchemy(app)
 #Create the two classes that represent the tables in the Database
 #User table
 class Users(db.Model):
+    __tablename__ = "Users"
+
     id = db.Column(db.Integer,primary_key=True)
     public_id = db.Column(db.String(50),unique=True) #Public_id is used to help prevent people seeing how many users are in the db
     email = db.Column(db.String(120),unique=True)
     name = db.Column(db.String(120),unique=True, nullable=True) #Optional
     password = db.Column(db.String(80))
     admin = db.Column(db.Boolean)
+
+    def __init__(self, public_id, email, name, password, admin):
+        self.public_id = public_id
+        self.email = email
+        self.name = name
+        self.password = password
+        self.admin = admin
+
 #Links table
 class Links(db.Model):
+    __tablename__ = "Links"
+
     id = db.Column(db.Integer,primary_key=True)
     public_id = db.Column(db.String(50),unique=True)
     link = db.Column(db.String)
     link_name = db.Column(db.String(50))
     user_id = db.Column(db.Integer)
+
+    def __init__(self, public_id, link, link_name, user_id):
+        self.public_id = public_id
+        self.link = link
+        self.link_name = link_name
+        self.user_id = user_id
 
 #JWT token decorator, checking if token is valid
 def token_required(f):
@@ -257,4 +277,4 @@ def login():
 
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", debug=True)
