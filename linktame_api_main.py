@@ -181,13 +181,13 @@ def create_user():
         #Check if User already Exists
         already_exists = Users.query.filter_by(email=new_user.email).first()
         if already_exists is not None:
-            return jsonify({'successful' : 'false', 'message' : 'Email already exists!'}), 400
+            return jsonify({'successful' : 'false', 'message' : 'Email already exists!'}), 200
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
         if app_debug:
             print(e)
-        return jsonify({'successful' : 'false', 'message' : 'Invalid signup data!'}), 400
+        return jsonify({'successful' : 'false', 'message' : 'Invalid signup data!'}), 401
 
     #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
     token = jwt.encode({'public_id' : new_user.public_id, 'email' : new_user.email, 'name' : new_user.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
@@ -203,7 +203,7 @@ def update_user(current_user):
     #check if user exists
     if not user:
         return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
-    #retrieve request body data 
+    #retrieve request body data
     data = request.get_json()
     #check if user name exists
     try:
