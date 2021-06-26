@@ -219,7 +219,7 @@ def update_user(current_user):
         #Name inserted successfully
         return jsonify({'successful' : 'true', "message" : "User name updated!"}), 200
     #Else return invalid name
-    return jsonify({'successful' : 'false', "message" : "Invalid name!"}), 200
+    return jsonify({'successful' : 'false', "message" : "Name already exists!"}), 200
 
 #Takes in user_id and will promote any user id to admin thats passed into an admin user_id
 @app.route('/v1/auth/user/<public_id>', methods=['PUT'])
