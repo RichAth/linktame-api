@@ -190,7 +190,7 @@ def create_user():
         return jsonify({'successful' : 'false', 'message' : 'Invalid signup data!'}), 400
 
     #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
-    token = jwt.encode({'public_id' : new_user.public_id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
+    token = jwt.encode({'public_id' : email.public_id, 'email' : email.email, 'name' : email.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
 
     return jsonify({'successful' : 'true', "message" : "User Created!", 'token' : token}), 200
 
@@ -281,7 +281,7 @@ def login():
     #if user password in db matches user password in auth then generate JWT token
     if check_password_hash(email.password, auth.password):
         #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
-        token = jwt.encode({'public_id' : email.public_id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
+        token = jwt.encode({'public_id' : email.public_id, 'email' : email.email, 'name' : email.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
 
         return jsonify({'successful' : 'true', 'token' : token}), 200
 
