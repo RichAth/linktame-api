@@ -1,5 +1,6 @@
 #based on tut: https://www.youtube.com/watch?v=WxGBoY5iNXY
 #Requires SQLite3 to be installed
+#linktame_api_main
 import sys, os
 
 import gunicorn
@@ -13,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash #To ha
 #from flask_jwt_extended import JWTManager
 import jwt
 import datetime #for jwt token expiration
-from functools import wraps #for JWT decorator 
+from functools import wraps #for JWT decorator
 
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -52,7 +53,7 @@ class Users(db.Model):
     public_id = db.Column(db.String(50),unique=True) #Public_id is used to help prevent people seeing how many users are in the db
     email = db.Column(db.String(120),unique=True)
     name = db.Column(db.String(120),unique=True, nullable=True) #Optional
-    password = db.Column(db.String(80))
+    password = db.Column(db.String(120))
     admin = db.Column(db.Boolean)
 
     def __init__(self, public_id, email, name, password, admin):
