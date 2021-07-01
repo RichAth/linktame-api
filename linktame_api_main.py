@@ -77,12 +77,14 @@ class Links(db.Model):
     link = db.Column(db.String)
     link_name = db.Column(db.String(50))
     user_id = db.Column(db.Integer)
+    link_pos = db.Column(db.Integer)
 
-    def __init__(self, public_id, link, link_name, user_id):
+    def __init__(self, public_id, link, link_name, user_id, link_pos):
         self.public_id = public_id
         self.link = link
         self.link_name = link_name
         self.user_id = user_id
+        self.link_pos = link_pos
 #db Config--------------------------------------------------------------------------------------------
 
 #JWT token decorator, checks if token is valid
