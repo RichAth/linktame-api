@@ -39,7 +39,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #"""
 import re
 
-uri = "postgres://nhbiopxtnzqwip:7c99441754b6cb896c7a42aa61d8095ee1b1ccc4f3be7d5565e3a6036f50379b@ec2-50-17-255-120.compute-1.amazonaws.com:5432/deo78hf9n71goj"  # or other relevant config var
+uri = "postgres://kdscgqldgfhkkw:55319574f1f8e6ae17c933ad31ac0a0745d12f18d3a19ae9800d9bb40839657c@ec2-107-21-10-179.compute-1.amazonaws.com:5432/dcoseru0ud8gpr"  # or other relevant config var
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 # rest of connection code using the connection string `uri`
