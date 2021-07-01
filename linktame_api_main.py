@@ -33,7 +33,7 @@ app.config['SECRET_KEY'] = 'thisissecret'
 #db Config--------------------------------------------------------------------------------------------
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Linktame\\links.db'
-
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\Richard\\Documents\\Code\\Linktame\\linktame-api\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 #Comment out the following for local deployment
 #"""
