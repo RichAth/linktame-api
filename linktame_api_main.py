@@ -46,14 +46,14 @@ uri = "postgres://kdscgqldgfhkkw:55319574f1f8e6ae17c933ad31ac0a0745d12f18d3a19ae
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 # rest of connection code using the connection string `uri`
-#Configure Database
- #this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
+# Configure Database
+ # this is to point to local url, but for heroku deployment see:https://medium.com/analytics-vidhya/heroku-deploy-your-flask-app-with-a-database-online-d19274a7a749
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
-#"""
-#create the db class
+# """
+# create the db class
 db = SQLAlchemy(app)
-#Create the two classes that represent the tables in the Database
-#User table
+# Create the two classes that represent the tables in the Database
+# User table
 class Users(db.Model):
     __tablename__ = "users"
 
@@ -66,7 +66,7 @@ class Users(db.Model):
     verified = db.Column(db.Boolean,nullable=False,default=False)
     verified_on = db.Column(db.DateTime, nullable=True)
     created_on = db.Column(db.DateTime, nullable=False)
-    #Relationship
+    # Relationship
     links = db.relationship('Links',backref='user')
 
     def __init__(self, public_id, email, name, password, admin, verified, verified_on, created_on):
@@ -323,7 +323,7 @@ def login():
 #Link position
 #Link name
 #Link position
-@app.route('/v1/auth/user/link', methods=['POST'])
+@app.route('/v1/user/link', methods=['POST'])
 @token_required #token required decorator
 def create_link(current_user):
     #This check ensures that the user has not been removed from the Users db but still has a valid JWT token
@@ -363,7 +363,7 @@ def create_link(current_user):
 #Links positions
 #Links names
 #Links positions
-@app.route('/v1/auth/user/link', methods=['GET'])
+@app.route('/v1/user/link', methods=['GET'])
 @token_required #token required decorator
 def load_link(current_user):
     #This check ensures that the user has not been removed from the Users db but still has a valid JWT token
@@ -398,3 +398,4 @@ def load_link(current_user):
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
+
