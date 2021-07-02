@@ -32,11 +32,11 @@ app.config['SECRET_KEY'] = 'thisissecret'
 
 #db Config--------------------------------------------------------------------------------------------
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Code\\Linktame\\links.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Code\\Linktame\\links.db'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\Richard\\Documents\\Code\\Linktame\\linktame-api\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 #Comment out the following for local deployment
-"""
+#"""
 import re
 
 uri = "postgres://kdscgqldgfhkkw:55319574f1f8e6ae17c933ad31ac0a0745d12f18d3a19ae9800d9bb40839657c@ec2-107-21-10-179.compute-1.amazonaws.com:5432/dcoseru0ud8gpr"  # or other relevant config var
