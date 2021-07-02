@@ -32,11 +32,11 @@ app.config['SECRET_KEY'] = 'thisissecret'
 
 #db Config--------------------------------------------------------------------------------------------
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Linktame\\links.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Code\\Linktame\\links.db'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\Richard\\Documents\\Code\\Linktame\\linktame-api\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 #Comment out the following for local deployment
-#"""
+"""
 import re
 
 uri = "postgres://kdscgqldgfhkkw:55319574f1f8e6ae17c933ad31ac0a0745d12f18d3a19ae9800d9bb40839657c@ec2-107-21-10-179.compute-1.amazonaws.com:5432/dcoseru0ud8gpr"  # or other relevant config var
@@ -175,6 +175,9 @@ def get_one_user(current_user, public_id):
 def create_user():
 
     data = request.get_json()
+    #Check if Json object has password database
+    if not 'password' in data:
+        return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
     #Hash password
     hashed_password = generate_password_hash(data['password'], method='sha256')
     try:
@@ -197,6 +200,10 @@ def create_user():
     return jsonify({'successful' : 'true', "message" : "User Created!", 'token' : token}), 200
 
 #Update User Name---------------------------------------------------
+#A function that is used to create the users linkta.me.name link
+#.name has to be unique
+#generates a new JWT token for the user with the name also now embedded
+#returns back standard json message of success and message
 @app.route('/v1/auth/user', methods=['PUT'])
 @token_required #token required decorator
 def update_user(current_user):
@@ -207,7 +214,8 @@ def update_user(current_user):
         return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
     #retrieve request body data
     data = request.get_json()
-    #check if user name exists
+    #check if user name exists in JSON body and retrieve first if so.... much easier way to do this other than try except..Use:
+    #if not 'name' in data:
     try:
         name_exists = Users.query.filter_by(name=data['name']).first()
     except Exception as e:
@@ -299,7 +307,31 @@ def login():
     #else if password doesnt match
     return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
+#Link Creation User endpoints for user authentication --------------------------------------------------------
+#Endpoint to Create a user link---------------------------------------
+#Link position
+#Link name
+#Link position
+@app.route('/v1/auth/user/link', methods=['POST'])
+@token_required #token required decorator
+def create_link(current_user):
+    #retrieve users data with public_id from JWT token
+    user = Users.query.filter_by(public_id=current_user.public_id).first()
+    #check if user exists
+    if not user:
+        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
 
+    return 'Success'
+
+#Endpoint to Load a users links---------------------------------------
+#Return a JSON object of:
+#Links positions
+#Links names
+#Links positions
+@app.route('/v1/auth/user/link', methods=['GET'])
+@token_required #token required decorator
+def load_link(current_user):
+    return '200'
 
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
