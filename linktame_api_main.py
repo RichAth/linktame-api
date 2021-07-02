@@ -87,7 +87,7 @@ class Links(db.Model):
     public_id = db.Column(db.String(50),unique=True)
     link = db.Column(db.String)
     link_name = db.Column(db.String(50))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.public_id')) #one-many relationship
+    user_id = db.Column(db.String(50), db.ForeignKey('users.public_id')) #one-many relationship
     link_pos = db.Column(db.Integer)
 
     def __init__(self, public_id, link, link_name, user_id, link_pos):
