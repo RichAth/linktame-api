@@ -389,7 +389,7 @@ def load_link(current_user):
     #links_return.append({})
     #links_return[1]['link'] = links[i].link
     for i in range(len(links)):
-        links_return.append({'link' : links[i].link, 'link_name':links[i].link_name, 'link_pos':links[i].link_pos})
+        links_return.append({'public_id':links[i].public_id, 'link' : links[i].link, 'link_name':links[i].link_name, 'link_pos':links[i].link_pos})
     if app_debug:
         print(links_return)
 
