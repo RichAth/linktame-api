@@ -2,6 +2,8 @@
 #Requires SQLite3 to be installed
 #linktame_api_main
 import sys, os
+import datetime
+import pytz
 
 import gunicorn
 import json #havent used yet
@@ -32,10 +34,11 @@ app.config['SECRET_KEY'] = 'thisissecret'
 
 #db Config--------------------------------------------------------------------------------------------
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+#Comment out the following and line 40 for heroku deployment and git push
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Code\\Linktame\\links.db'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\Richard\\Documents\\Code\\Linktame\\linktame-api\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
-#Comment out the following for local deployment
+#Comment out the following line 40 for local deployment,
 #"""
 import re
 
@@ -59,14 +62,22 @@ class Users(db.Model):
     email = db.Column(db.String(120),unique=True)
     name = db.Column(db.String(120),unique=True, nullable=True) #Optional
     password = db.Column(db.String(120))
-    admin = db.Column(db.Boolean)
+    admin = db.Column(db.Boolean,nullable=False,default=False)
+    verified = db.Column(db.Boolean,nullable=False,default=False)
+    verified_on = db.Column(db.DateTime, nullable=True)
+    created_on = db.Column(db.DateTime, nullable=False)
+    #Relationship
+    links = db.relationship('Links',backref='user')
 
-    def __init__(self, public_id, email, name, password, admin):
+    def __init__(self, public_id, email, name, password, admin, verified, verified_on, created_on):
         self.public_id = public_id
         self.email = email
         self.name = name
         self.password = password
         self.admin = admin
+        self.verified = verified
+        self.verified_on = verified_on
+        self.created_on = created_on
 
 #Links table
 class Links(db.Model):
@@ -76,7 +87,7 @@ class Links(db.Model):
     public_id = db.Column(db.String(50),unique=True)
     link = db.Column(db.String)
     link_name = db.Column(db.String(50))
-    user_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.public_id')) #one-many relationship
     link_pos = db.Column(db.Integer)
 
     def __init__(self, public_id, link, link_name, user_id, link_pos):
@@ -181,8 +192,8 @@ def create_user():
     #Hash password
     hashed_password = generate_password_hash(data['password'], method='sha256')
     try:
-        #Create new user in db in table Users....use uuid to generate public_id
-        new_user = Users(public_id=str(uuid.uuid4()), email=data['email'], name=data['name'], password=hashed_password, admin=False)
+        #Create new user in db in table Users....use uuid to generate public_id..add timestamp for date created
+        new_user = Users(public_id=str(uuid.uuid4()), email=data['email'], name=data['name'], password=hashed_password, admin=False, verified=False, verified_on=None, created_on=datetime.datetime.now(pytz.timezone('Australia/Melbourne')))
         #Check if User already Exists
         already_exists = Users.query.filter_by(email=new_user.email).first()
         if already_exists is not None:
@@ -300,7 +311,7 @@ def login():
     #if user password in db matches user password in auth then generate JWT token
     if check_password_hash(email.password, auth.password):
         #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
-        token = jwt.encode({'public_id' : email.public_id, 'email' : email.email, 'name' : email.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
+        token = jwt.encode({'public_id' : email.public_id, 'email' : email.email, 'name' : email.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, app.config['SECRET_KEY'], algorithm="HS256")
 
         return jsonify({'successful' : 'true', 'token' : token}), 200
 
@@ -315,13 +326,37 @@ def login():
 @app.route('/v1/auth/user/link', methods=['POST'])
 @token_required #token required decorator
 def create_link(current_user):
-    #retrieve users data with public_id from JWT token
-    user = Users.query.filter_by(public_id=current_user.public_id).first()
-    #check if user exists
+    #This check ensures that the user has not been removed from the Users db but still has a valid JWT token
+    try:
+        #retrieve users data with public_id from JWT token
+        user = Users.query.filter_by(public_id=current_user.public_id).first()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+    #This is to check if user actually exists in db ... is redundant
     if not user:
         return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
 
-    return 'Success'
+    data = request.get_json()
+
+    #Check if Json object has correct data
+    for i in range(len(data['links'])):
+        if not 'link' or not 'link_name' or not 'link_pos' in data['links'][i]:
+            return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+
+    #Add new link to links db
+    for i in range(len(data['links'])):
+        try:
+            new_link = Links(public_id=str(uuid.uuid4()), link=data['links'][i]['link'], link_name=data['links'][i]['link_name'], user_id=user.public_id, link_pos=data['links'][i]['link_pos'])
+            db.session.add(new_link)
+            db.session.commit()
+        except Exception as e:
+            if app_debug:
+                print(e)
+            return jsonify({'successful' : 'false', 'message' : 'Server error. Check data types!'}), 500
+
+    return jsonify({"message" : "Links Created!", 'successful' : 'true'}), 200
 
 #Endpoint to Load a users links---------------------------------------
 #Return a JSON object of:
@@ -331,7 +366,34 @@ def create_link(current_user):
 @app.route('/v1/auth/user/link', methods=['GET'])
 @token_required #token required decorator
 def load_link(current_user):
-    return '200'
+    #This check ensures that the user has not been removed from the Users db but still has a valid JWT token
+    try:
+        #retrieve users data with public_id from JWT token
+        user = Users.query.filter_by(public_id=current_user.public_id).first()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+    #This is to check if user actually exists in db ... is redundant
+    if not user:
+        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+    #get number of associated links to user public_id
+    links = Links.query.filter_by(user_id=user.public_id).all()
+    if app_debug:
+        print("Number of associated links: ", len(links))
+        for i in range(len(links)):
+            print(links[i].public_id)
+    #Load links into JSON object
+    links_return = []
+    #links_return[0]['link'] = links[i].link
+    #links_return.append({})
+    #links_return[1]['link'] = links[i].link
+    for i in range(len(links)):
+        links_return.append({'link' : links[i].link, 'link_name':links[i].link_name, 'link_pos':links[i].link_pos})
+    if app_debug:
+        print(links_return)
+
+    return jsonify({"message" : "Links Loaded!", 'successful' : 'true', "links" : links_return}), 200
 
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
