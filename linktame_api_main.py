@@ -342,7 +342,7 @@ def create_link(current_user):
 
     #Check if Json object has correct data
     for i in range(len(data['links'])):
-        if not 'link' or not 'link_name' or not 'link_pos' in data['links'][i]:
+        if (not 'link' in data['links'][i]) or (not 'link_name' in data['links'][i]) or (not 'link_pos' in data['links'][i]):
             return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
 
     #Add new link to links db
@@ -382,7 +382,7 @@ def update_link(current_user):
 
     #Check if Json object has correct data
     for i in range(len(data['links'])):
-        if not 'link' or not 'link_name' or not 'link_pos' in data['links'][i]:
+        if (not 'link' in data['links'][i]) or (not 'link_name' in data['links'][i]) or (not 'link_pos' in data['links'][i]):
             return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
 
     #update links in db
@@ -397,6 +397,46 @@ def update_link(current_user):
             return jsonify({'successful' : False, 'message' : 'Server error. Check data types!'}), 500'''
 
     return jsonify({"message" : "Links Created!", 'successful' : True}), 200
+
+#Endpoint to delete a user link---------------------------------------
+#input: JWT: user_id & JSON Body: link_name & link public_id
+#return: JSON success and message
+@app.route('/v1/user/link', methods=['DELETE'])
+@token_required #token required decorator
+def delete_link(current_user):
+    #This check ensures that the user has not been removed from the Users db but still has a valid JWT token
+    try:
+        #retrieve users data with public_id from JWT token
+        user = Users.query.filter_by(public_id=current_user.public_id).first()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
+    #This is to check if user actually exists in db ... is redundant
+    if not user:
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
+
+    data = request.get_json()
+    #Check if Json object has correct data
+    if (not 'link_name' in data) or (not 'public_id' in data):
+        return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
+
+    #delete link in db
+    try:
+        #query db for public_id
+        link = Links.query.filter_by(public_id=data['public_id']).first()
+        #check if link exists
+        if not link:
+            return jsonify({'successful' : False, "message" : "Link does not exist!"}), 200
+
+        db.session.delete(link)
+        db.session.commit()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : False, 'message' : 'Server error. Check data types!'}), 500
+
+    return jsonify({"message" : "Links deleted!", 'successful' : True}), 200
 
 #Endpoint to Load a users links---------------------------------------
 #Return a JSON object of:
@@ -441,15 +481,11 @@ def load_link(current_user):
 #Links positions
 #Links names
 #Links positions
-@app.route('/v1/links', methods=['GET'])
-def load_public_links():
+@app.route('/v1/links/<name>', methods=['GET'])
+def load_public_links(name):
 
-    data = request.get_json()
-    #Check if Json object has password database
-    if not 'name' in data:
-        return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
     #Get User Id from Users table via user name
-    public_id = Users.query.filter_by(name=data["name"]).first()
+    public_id = Users.query.filter_by(name=name).first()
     #get number of associated links to user public_id
     links = Links.query.filter_by(user_id=public_id.public_id).all()
     if app_debug:
