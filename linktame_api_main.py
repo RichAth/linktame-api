@@ -35,7 +35,7 @@ app.config['SECRET_KEY'] = 'thisissecret'
 #db Config--------------------------------------------------------------------------------------------
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #Comment out the following and line 40 for heroku deployment and git push
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Code\\Linktame\\links.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\athey\\Documents\\Code\\Linktame-api\\links.db'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\Richard\\Documents\\Code\\Linktame\\linktame-api\\links.db'
 #https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 #Comment out the following line 40 for local deployment,
@@ -434,6 +434,39 @@ def load_link(current_user):
         print(links_return)
 
     return jsonify({"message" : "Links Loaded!", 'successful' : 'true', "links" : links_return}), 200
+
+#Endpoint to Load a users links---------------------------------------
+#input: JSON - User Name
+#Return a JSON object of:
+#Links positions
+#Links names
+#Links positions
+@app.route('/v1/links', methods=['GET'])
+def load_public_links():
+
+    data = request.get_json()
+    #Check if Json object has password database
+    if not 'name' in data:
+        return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+    #Get User Id from Users table via user name
+    public_id = Users.query.filter_by(name=data["name"]).first()
+    #get number of associated links to user public_id
+    links = Links.query.filter_by(user_id=public_id.public_id).all()
+    if app_debug:
+        print("Number of associated links: ", len(links))
+        for i in range(len(links)):
+            print(links[i].public_id)
+    #Load links into JSON object
+    links_return = []
+    #links_return[0]['link'] = links[i].link
+    #links_return.append({})
+    #links_return[1]['link'] = links[i].link
+    for i in range(len(links)):
+        links_return.append({'public_id':links[i].public_id, 'link' : links[i].link, 'link_name':links[i].link_name, 'link_pos':links[i].link_pos})
+    if app_debug:
+        print(links_return)
+
+    return jsonify({"message" : "Links Loaded!", 'successful' : 1, "links" : links_return}), 200
 
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
