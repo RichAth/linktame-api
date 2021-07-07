@@ -169,7 +169,7 @@ def get_one_user(current_user, public_id):
     user = Users.query.filter_by(public_id=public_id).first()
 
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 200
+        return jsonify({'successful' : False, "message" : "No user found!"}), 200
 
     user_data = {}
     user_data['public_id'] = user.public_id
@@ -188,7 +188,7 @@ def create_user():
     data = request.get_json()
     #Check if Json object has password database
     if not 'password' in data:
-        return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+        return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
     #Hash password
     hashed_password = generate_password_hash(data['password'], method='sha256')
     try:
@@ -197,18 +197,18 @@ def create_user():
         #Check if User already Exists
         already_exists = Users.query.filter_by(email=new_user.email).first()
         if already_exists is not None:
-            return jsonify({'successful' : 'false', 'message' : 'Email already exists!'}), 200
+            return jsonify({'successful' : False, 'message' : 'Email already exists!'}), 200
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
         if app_debug:
             print(e)
-        return jsonify({'successful' : 'false', 'message' : 'Invalid signup data!'}), 401
+        return jsonify({'successful' : False, 'message' : 'Invalid signup data!'}), 401
 
     #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
     token = jwt.encode({'public_id' : new_user.public_id, 'email' : new_user.email, 'name' : new_user.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
 
-    return jsonify({'successful' : 'true', "message" : "User Created!", 'token' : token}), 200
+    return jsonify({'successful' : True, "message" : "User Created!", 'token' : token}), 200
 
 #Update User Name---------------------------------------------------
 #A function that is used to create the users linkta.me.name link
@@ -222,7 +222,7 @@ def update_user(current_user):
     user = Users.query.filter_by(public_id=current_user.public_id).first()
     #check if user exists
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #retrieve request body data
     data = request.get_json()
     #check if user name exists in JSON body and retrieve first if so.... much easier way to do this other than try except..Use:
@@ -232,7 +232,7 @@ def update_user(current_user):
     except Exception as e:
         if app_debug:
             print(e)
-        return jsonify({'successful' : 'false', 'message' : 'Invalid name!'}), 400
+        return jsonify({'successful' : False, 'message' : 'Invalid name!'}), 400
 
     #Check if name exists
     if not name_exists:
@@ -242,14 +242,14 @@ def update_user(current_user):
         except Exception as e:
             if app_debug:
                 print(e)
-            return jsonify({'successful' : 'false', 'message' : 'Invalid name!'}), 400
+            return jsonify({'successful' : False, 'message' : 'Invalid name!'}), 400
         #Name inserted successfully
         #Create new JWT token with updated name
         #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
         token = jwt.encode({'public_id' : current_user.public_id, 'email' : current_user.email, 'name' : user.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
-        return jsonify({'name' : user.name, 'successful' : 'true', "message" : "User name updated!", 'token' : token}), 200
+        return jsonify({'name' : user.name, 'successful' : True, "message" : "User name updated!", 'token' : token}), 200
     #Else return Name already exists! 200
-    return jsonify({'successful' : 'false', "message" : "Name already exists!"}), 200
+    return jsonify({'successful' : False, "message" : "Name already exists!"}), 200
 
 #Takes in user_id and will promote any user id to admin thats passed into an admin user_id
 @app.route('/v1/auth/user/<public_id>', methods=['PUT'])
@@ -263,12 +263,12 @@ def promote_user(current_user, public_id):
     user = Users.query.filter_by(public_id=public_id).first()
 
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #Promote User to Admin
     user.admin = True
     db.session.commit()
 
-    return jsonify({'successful' : 'true', "message" : "The user has been promoted!"}), 200
+    return jsonify({'successful' : True, "message" : "The user has been promoted!"}), 200
 
 #Endpoint to Delete User---------------------------------------
 @app.route('/v1/auth/user/<public_id>', methods=['DELETE'])
@@ -282,12 +282,12 @@ def delete_user(current_user, public_id):
     user = Users.query.filter_by(public_id=public_id).first()
 
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 200
+        return jsonify({'successful' : False, "message" : "No user found!"}), 200
 
     db.session.delete(user)
     db.session.commit()
 
-    return jsonify({'successful' : 'true', "message" : "The user has been deleted!"}), 200
+    return jsonify({'successful' : True, "message" : "The user has been deleted!"}), 200
 
 #Handling User endpoints for user managment --------------------------------------------------------
 
@@ -301,22 +301,22 @@ def login():
 
     if not auth or not auth.username or not auth.password:
         #If auth failed make response returning a 401 with an appropriate header
-        return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+        return make_response(jsonify({"message" : "Could not verify!", 'successful' : False}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
     #if auth info is valid, get user data from db
     email = Users.query.filter_by(email=auth.username).first()
     #Check if user email does not exist
     if not email:
-        return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+        return make_response(jsonify({"message" : "Could not verify!", 'successful' : False}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
     #if user password in db matches user password in auth then generate JWT token
     if check_password_hash(email.password, auth.password):
         #Create token that is active for timedelta period. datetime needs to be in unix utc timestamp format
         token = jwt.encode({'public_id' : email.public_id, 'email' : email.email, 'name' : email.name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, app.config['SECRET_KEY'], algorithm="HS256")
 
-        return jsonify({'successful' : 'true', 'token' : token}), 200
+        return jsonify({'successful' : True, 'token' : token}), 200
 
     #else if password doesnt match
-    return make_response(jsonify({"message" : "Could not verify!", 'successful' : 'false'}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+    return make_response(jsonify({"message" : "Could not verify!", 'successful' : False}), 401 , {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
 #Link Creation User endpoints for user authentication --------------------------------------------------------
 #Endpoint to Create a user link---------------------------------------
@@ -333,17 +333,17 @@ def create_link(current_user):
     except Exception as e:
         if app_debug:
             print(e)
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #This is to check if user actually exists in db ... is redundant
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
 
     data = request.get_json()
 
     #Check if Json object has correct data
     for i in range(len(data['links'])):
         if not 'link' or not 'link_name' or not 'link_pos' in data['links'][i]:
-            return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+            return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
 
     #Add new link to links db
     for i in range(len(data['links'])):
@@ -354,9 +354,9 @@ def create_link(current_user):
         except Exception as e:
             if app_debug:
                 print(e)
-            return jsonify({'successful' : 'false', 'message' : 'Server error. Check data types!'}), 500
+            return jsonify({'successful' : False, 'message' : 'Server error. Check data types!'}), 500
 
-    return jsonify({"message" : "Links Created!", 'successful' : 'true'}), 200
+    return jsonify({"message" : "Links Created!", 'successful' : True}), 200
 
 #Endpoint to update a user link---------------------------------------
 #NOTE: check if one of the following then update
@@ -373,17 +373,17 @@ def update_link(current_user):
     except Exception as e:
         if app_debug:
             print(e)
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #This is to check if user actually exists in db ... is redundant
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
 
     data = request.get_json()
 
     #Check if Json object has correct data
     for i in range(len(data['links'])):
         if not 'link' or not 'link_name' or not 'link_pos' in data['links'][i]:
-            return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+            return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
 
     #update links in db
     '''for i in range(len(data['links'])):
@@ -394,9 +394,9 @@ def update_link(current_user):
         except Exception as e:
             if app_debug:
                 print(e)
-            return jsonify({'successful' : 'false', 'message' : 'Server error. Check data types!'}), 500'''
+            return jsonify({'successful' : False, 'message' : 'Server error. Check data types!'}), 500'''
 
-    return jsonify({"message" : "Links Created!", 'successful' : 'true'}), 200
+    return jsonify({"message" : "Links Created!", 'successful' : True}), 200
 
 #Endpoint to Load a users links---------------------------------------
 #Return a JSON object of:
@@ -413,10 +413,10 @@ def load_link(current_user):
     except Exception as e:
         if app_debug:
             print(e)
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #This is to check if user actually exists in db ... is redundant
     if not user:
-        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #get number of associated links to user public_id
     links = Links.query.filter_by(user_id=user.public_id).all()
     if app_debug:
@@ -433,7 +433,7 @@ def load_link(current_user):
     if app_debug:
         print(links_return)
 
-    return jsonify({"message" : "Links Loaded!", 'successful' : 'true', "links" : links_return}), 200
+    return jsonify({"message" : "Links Loaded!", 'successful' : True, "links" : links_return}), 200
 
 #Endpoint to Load a users links---------------------------------------
 #input: JSON - User Name
@@ -447,7 +447,7 @@ def load_public_links():
     data = request.get_json()
     #Check if Json object has password database
     if not 'name' in data:
-        return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+        return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
     #Get User Id from Users table via user name
     public_id = Users.query.filter_by(name=data["name"]).first()
     #get number of associated links to user public_id
@@ -466,7 +466,7 @@ def load_public_links():
     if app_debug:
         print(links_return)
 
-    return jsonify({"message" : "Links Loaded!", 'successful' : 1, "links" : links_return}), 200
+    return jsonify({"message" : "Links Loaded!", 'successful' : True, "links" : links_return}), 200
 
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
