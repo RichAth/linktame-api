@@ -358,6 +358,46 @@ def create_link(current_user):
 
     return jsonify({"message" : "Links Created!", 'successful' : 'true'}), 200
 
+#Endpoint to update a user link---------------------------------------
+#NOTE: check if one of the following then update
+#Link position
+#Link name
+#Link position
+@app.route('/v1/user/link', methods=['PUT'])
+@token_required #token required decorator
+def update_link(current_user):
+    #This check ensures that the user has not been removed from the Users db but still has a valid JWT token
+    try:
+        #retrieve users data with public_id from JWT token
+        user = Users.query.filter_by(public_id=current_user.public_id).first()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+    #This is to check if user actually exists in db ... is redundant
+    if not user:
+        return jsonify({'successful' : 'false', "message" : "No user found!"}), 401
+
+    data = request.get_json()
+
+    #Check if Json object has correct data
+    for i in range(len(data['links'])):
+        if not 'link' or not 'link_name' or not 'link_pos' in data['links'][i]:
+            return jsonify({'successful' : 'false', 'message' : 'Incorrect HTTP body format!'}), 400
+
+    #update links in db
+    '''for i in range(len(data['links'])):
+        try:
+            new_link = Links(public_id=str(uuid.uuid4()), link=data['links'][i]['link'], link_name=data['links'][i]['link_name'], user_id=user.public_id, link_pos=data['links'][i]['link_pos'])
+            db.session.add(new_link)
+            db.session.commit()
+        except Exception as e:
+            if app_debug:
+                print(e)
+            return jsonify({'successful' : 'false', 'message' : 'Server error. Check data types!'}), 500'''
+
+    return jsonify({"message" : "Links Created!", 'successful' : 'true'}), 200
+
 #Endpoint to Load a users links---------------------------------------
 #Return a JSON object of:
 #Links positions
@@ -398,4 +438,3 @@ def load_link(current_user):
 #App Run-----------------------------------------------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
-
