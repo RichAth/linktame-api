@@ -481,11 +481,20 @@ def load_link(current_user):
 #Links positions
 #Links names
 #Links positions
+#TO DO - Error handling on name
 @app.route('/v1/links/<name>', methods=['GET'])
 def load_public_links(name):
-
-    #Get User Id from Users table via user name
-    public_id = Users.query.filter_by(name=name).first()
+    #Do error handling on name here... Check if user Exists
+    try:
+        #Get public_id from Users table via user name
+        public_id = Users.query.filter_by(name=name).first()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
+    #This is to check if user actually exists in db ... is redundant
+    if not public_id:
+        return jsonify({'successful' : False, "message" : "No user found!"}), 401
     #get number of associated links to user public_id
     links = Links.query.filter_by(user_id=public_id.public_id).all()
     if app_debug:
