@@ -381,22 +381,27 @@ def update_link(current_user):
     data = request.get_json()
 
     #Check if Json object has correct data
-    for i in range(len(data['links'])):
-        if (not 'link' in data['links'][i]) or (not 'link_name' in data['links'][i]) or (not 'link_pos' in data['links'][i]):
-            return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
+    if (not 'link' in data) or (not 'link_name' in data) or (not 'link_pos' in data) or (not 'public_id' in data):
+        return jsonify({'successful' : False, 'message' : 'Incorrect HTTP body format!'}), 400
+
 
     #update links in db
-    '''for i in range(len(data['links'])):
-        try:
-            new_link = Links(public_id=str(uuid.uuid4()), link=data['links'][i]['link'], link_name=data['links'][i]['link_name'], user_id=user.public_id, link_pos=data['links'][i]['link_pos'])
-            db.session.add(new_link)
-            db.session.commit()
-        except Exception as e:
-            if app_debug:
-                print(e)
-            return jsonify({'successful' : False, 'message' : 'Server error. Check data types!'}), 500'''
+    #delete link in db
+    try:
+        #query db for public_id
+        link = Links.query.filter_by(public_id=data['public_id']).first()
+        #check if link exists
+        if not link:
+            return jsonify({'successful' : False, "message" : "Link does not exist!"}), 200
+        #Update Links here
+        db.session.query(Links).filter_by(public_id=data['public_id']).update(dict(link=data['link'],link_pos= data['link_pos'],link_name=data['link_name']))
+        db.session.commit()
+    except Exception as e:
+        if app_debug:
+            print(e)
+        return jsonify({'successful' : False, 'message' : 'Server error. Check data types!'}), 500
 
-    return jsonify({"message" : "Links Created!", 'successful' : True}), 200
+    return jsonify({"message" : "Links Updated!", 'successful' : True}), 200
 
 #Endpoint to delete a user link---------------------------------------
 #input: JWT: user_id & JSON Body: link_name & link public_id
