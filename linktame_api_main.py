@@ -1,4 +1,4 @@
-#Comment to test deployment
+#Comment to test deploymen
 #based on tut: https://www.youtube.com/watch?v=WxGBoY5iNXY
 #Requires SQLite3 to be installed
 #linktame_api_main
